@@ -13,7 +13,9 @@ import java.time.LocalDate;
 import java.util.Optional;
 
 /**
- * The main controller for this application. Controllers can be split by the base URL in the request mapping
+ * The main controller for this application, handling RESTful endpoints
+ * for User and Home resources. Controllers are organized by base URL
+ * and provide CRUD (Create, Read, Update, Delete) operations.
  */
 @Controller
 @RequestMapping(path = RESTNouns.VERSION_1)
@@ -25,7 +27,9 @@ public class MainController {
     private HomeRepository homeRepository;
 
     /**
-     * Get Mapping for all users
+     * Retrieves all users from the database.
+     *
+     * @return An iterable collection of all User entities
      */
     @GetMapping(path = RESTNouns.USER)
     public @ResponseBody Iterable<User> getAllUsers() {
@@ -33,9 +37,10 @@ public class MainController {
     }
 
     /**
-     * Get for a user
-     * @param userId
-     * @return
+     * Retrieves a specific user by their unique identifier.
+     *
+     * @param userId The unique identifier of the user to retrieve
+     * @return An Optional containing the User if found, or an empty Optional
      */
     @GetMapping(path = RESTNouns.USER + RESTNouns.ID)
     public @ResponseBody Optional<User> getUser(@PathVariable("id") Long userId) {
@@ -43,10 +48,11 @@ public class MainController {
     }
 
     /**
-     * Post Mapping for a new users
-     * @param name name
-     * @param email email
-     * @return
+     * Creates a new user in the database.
+     *
+     * @param name The name of the user to create
+     * @param email The email address of the user to create
+     * @return The newly created User entity
      */
     @PostMapping(path = RESTNouns.USER)
     public @ResponseBody User createUser(
@@ -58,9 +64,10 @@ public class MainController {
     }
 
     /**
-     * Delete Mapping for a user by ID
-     * @param userId The ID of the user to delete
-     * @return A response indicating success or failure
+     * Deletes a user from the database by their unique identifier.
+     *
+     * @param userId The unique identifier of the user to delete
+     * @return A string message indicating the result of the deletion operation
      */
     @DeleteMapping(path = RESTNouns.USER + RESTNouns.ID)
     public @ResponseBody String deleteUser(@PathVariable("id") Long userId) {
@@ -73,11 +80,12 @@ public class MainController {
     }
 
     /**
-     * Put mapping for user
-     * @param userId
-     * @param name
-     * @param email
-     * @return
+     * Updates an existing user's information.
+     *
+     * @param userId The unique identifier of the user to update
+     * @param name The new name for the user
+     * @param email The new email address for the user
+     * @return A string message indicating the result of the update operation
      */
     @PutMapping(path = RESTNouns.USER + RESTNouns.ID)
     public @ResponseBody String updateUser(
@@ -93,11 +101,13 @@ public class MainController {
         } else {
             return "User with ID " + userId + " not found.";
         }
-
     }
 
     /**
-     * Get all homes for a specific User
+     * Retrieves all homes associated with a specific user.
+     *
+     * @param userId The unique identifier of the user whose homes are to be retrieved
+     * @return An iterable collection of Home entities belonging to the specified user
      */
     @GetMapping(path = RESTNouns.USER +  RESTNouns.ID + RESTNouns.HOME)
     public @ResponseBody Iterable<Home> getAllHomesByUser(@PathVariable("id") Long userId) {
@@ -105,8 +115,6 @@ public class MainController {
         if (userRepository.existsById(userId)) {
             Optional<User> user = userRepository.findById(userId);
             if(user.isPresent()){
-               // homeRepository
-
                 homes = homeRepository.getAllByUserId(userId);
             }
         }
@@ -117,17 +125,17 @@ public class MainController {
     }
 
     /**
-     * Create a home for a user
-     * @param userId user id
-     * @param dateBuilt date built
-     * @param value value of the home as an int
-     * @return
+     * Creates a new home for a specific user.
+     *
+     * @param userId The unique identifier of the user for whom the home is being created
+     * @param dateBuilt The date when the home was built
+     * @param value The monetary value of the home
+     * @return The newly created Home entity, or null if the user does not exist
      */
     @PostMapping(path = RESTNouns.USER + RESTNouns.ID + RESTNouns.HOME)
     public @ResponseBody Home createHomeByUser(
             @PathVariable("id") Long userId,
             @RequestParam LocalDate dateBuilt, @RequestParam int value) {
-//
         Home home = null;
         if (userRepository.existsById(userId)) {
             Optional<User> user = userRepository.findById(userId);
@@ -137,7 +145,6 @@ public class MainController {
             home.setDateBuilt(dateBuilt);
             home.setUser(user.get());
             homeRepository.save(home);
-
         }
 
         //TODO handle error codes
@@ -146,10 +153,13 @@ public class MainController {
     }
 
     /**
-     * Put mapping for home
-     * @param userId user id
-     * @param dateBuilt date built
-     * @param value value of the home as an int
+     * Updates an existing home associated with a specific user.
+     *
+     * @param userId The unique identifier of the user who owns the home
+     * @param homeId The unique identifier of the home to be updated
+     * @param dateBuilt The new date when the home was built
+     * @param value The new monetary value of the home
+     * @return A string message indicating the result of the update operation
      */
     @PutMapping(path = RESTNouns.USER + RESTNouns.USER_ID + RESTNouns.HOME + RESTNouns.HOME_ID)
     public @ResponseBody String updateHomeByUser(
@@ -158,8 +168,6 @@ public class MainController {
             Optional<User> user = userRepository.findById(userId);
             Optional<Home> home = homeRepository.findById(homeId);
             if(user.isPresent() && home.isPresent()){
-//                user.get().setName(name);
-//                user.get().setEmail(email);
                 home.get().setDateBuilt(dateBuilt);
                 home.get().setValue(value);
 
@@ -173,12 +181,14 @@ public class MainController {
     }
 
     /**
-     * Delete Mapping for a user by ID
-     * @param userId The ID of the user to delete
-     * @return A response indicating success or failure
+     * Deletes a specific home associated with a user.
+     *
+     * @param userId The unique identifier of the user who owns the home
+     * @param homeId The unique identifier of the home to be deleted
+     * @return A string message indicating the result of the deletion operation
      */
     @DeleteMapping(path = RESTNouns.USER + RESTNouns.USER_ID + RESTNouns.HOME + RESTNouns.HOME_ID)
-    public @ResponseBody String deleteHome(
+    public @ResponseBody String deleteHomeByUser(
             @PathVariable("user_id") Long userId, @PathVariable("home_id") Long homeId) {
         if (userRepository.existsById(userId) && homeRepository.existsById(homeId)) {
             homeRepository.deleteById(homeId);
@@ -187,5 +197,4 @@ public class MainController {
             return "Home with ID " + homeId + " not found.";
         }
     }
-
 }
