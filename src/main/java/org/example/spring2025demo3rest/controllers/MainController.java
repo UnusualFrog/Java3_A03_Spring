@@ -5,6 +5,7 @@ import org.example.spring2025demo3rest.dataaccess.UserRepository;
 import org.example.spring2025demo3rest.pojos.Home;
 import org.example.spring2025demo3rest.pojos.User;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cglib.core.Local;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
@@ -142,6 +143,34 @@ public class MainController {
         //TODO handle error codes
 
         return home;
+    }
+
+    /**
+     * Put mapping for home
+     * @param userId user id
+     * @param dateBuilt date built
+     * @param value value of the home as an int
+     */
+    @PutMapping(path = RESTNouns.USER + RESTNouns.USER_ID + RESTNouns.HOME + RESTNouns.HOME_ID)
+    public @ResponseBody String updateHomeByUser(
+            @PathVariable("user_id") Long userId, @PathVariable("home_id") Long homeId, @RequestParam LocalDate dateBuilt, @RequestParam int value){
+        if (userRepository.existsById(userId) && homeRepository.existsById(homeId)) {
+            Optional<User> user = userRepository.findById(userId);
+            Optional<Home> home = homeRepository.findById(homeId);
+            if(user.isPresent() && home.isPresent()){
+//                user.get().setName(name);
+//                user.get().setEmail(email);
+                home.get().setDateBuilt(dateBuilt);
+                home.get().setValue(value);
+
+                homeRepository.save(home.get());
+                userRepository.save(user.get());
+            }
+            return "Home with ID " + homeId + " updated successfully.";
+        } else {
+            return "Home with ID " + homeId + " not found.";
+        }
+
     }
 
 }
