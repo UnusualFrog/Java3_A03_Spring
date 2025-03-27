@@ -170,7 +170,22 @@ public class MainController {
         } else {
             return "Home with ID " + homeId + " not found.";
         }
+    }
 
+    /**
+     * Delete Mapping for a user by ID
+     * @param userId The ID of the user to delete
+     * @return A response indicating success or failure
+     */
+    @DeleteMapping(path = RESTNouns.USER + RESTNouns.USER_ID + RESTNouns.HOME + RESTNouns.HOME_ID)
+    public @ResponseBody String deleteHome(
+            @PathVariable("user_id") Long userId, @PathVariable("home_id") Long homeId) {
+        if (userRepository.existsById(userId) && homeRepository.existsById(homeId)) {
+            homeRepository.deleteById(homeId);
+            return "Home with ID " + homeId + " deleted successfully.";
+        } else {
+            return "Home with ID " + homeId + " not found.";
+        }
     }
 
 }
