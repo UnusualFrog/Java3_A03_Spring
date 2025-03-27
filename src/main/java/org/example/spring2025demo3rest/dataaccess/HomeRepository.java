@@ -14,11 +14,4 @@ public interface HomeRepository extends CrudRepository<Home, Long> {
      * @return
      */
     Iterable<Home> getAllByUserId(Long userId);
-
-    //Note: I am surprised this works! Spring detects it and fills in the method. Crazy.
-    //If this didn't work I would have retrieved all the homes and looped through and grab the homes that
-    //matched the user id.
-
-
-
 }

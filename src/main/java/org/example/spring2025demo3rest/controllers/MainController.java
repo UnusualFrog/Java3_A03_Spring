@@ -2,6 +2,8 @@ package org.example.spring2025demo3rest.controllers;
 
 import org.example.spring2025demo3rest.dataaccess.HomeRepository;
 import org.example.spring2025demo3rest.dataaccess.UserRepository;
+import org.example.spring2025demo3rest.dataaccess.AutoRepository;
+import org.example.spring2025demo3rest.pojos.Auto;
 import org.example.spring2025demo3rest.pojos.Home;
 import org.example.spring2025demo3rest.pojos.User;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,8 +25,15 @@ public class MainController {
 
     //Wire the ORM
     @Autowired private UserRepository userRepository;
-    @Autowired
-    private HomeRepository homeRepository;
+    @Autowired private HomeRepository homeRepository;
+    @Autowired private AutoRepository autoRepository;
+
+    /**
+     *
+     *  USER METHODS
+     *
+     * */
+
 
     /**
      * Retrieves all users from the database.
@@ -95,13 +104,21 @@ public class MainController {
             if(user.isPresent()){
                 user.get().setName(name);
                 user.get().setEmail(email);
+                userRepository.save(user.get());
             }
-            userRepository.save(user.get());
             return "User with ID " + userId + " updated successfully.";
         } else {
             return "User with ID " + userId + " not found.";
         }
     }
+
+    /**
+     *
+     *
+     *  HOME METHODS
+     *
+     *
+     * */
 
     /**
      * Retrieves all homes associated with a specific user.
@@ -139,12 +156,13 @@ public class MainController {
         Home home = null;
         if (userRepository.existsById(userId)) {
             Optional<User> user = userRepository.findById(userId);
-
-            home = new Home();
-            home.setValue(value);
-            home.setDateBuilt(dateBuilt);
-            home.setUser(user.get());
-            homeRepository.save(home);
+            if (user.isPresent()) {
+                home = new Home();
+                home.setValue(value);
+                home.setDateBuilt(dateBuilt);
+                home.setUser(user.get());
+                homeRepository.save(home);
+            }
         }
 
         //TODO handle error codes
@@ -195,6 +213,106 @@ public class MainController {
             return "Home with ID " + homeId + " deleted successfully.";
         } else {
             return "Home with ID " + homeId + " not found.";
+        }
+    }
+
+    /**
+     *
+     *
+     *  AUTO METHODS
+     *
+     * */
+
+    /**
+     * Retrieves all auto objects associated with a specific user.
+     *
+     * @param userId The unique identifier of the user whose auto objects are to be retrieved
+     * @return An iterable collection of Auto entities belonging to the specified user,
+     *         or null if the user does not exist
+     */
+    @GetMapping(path = RESTNouns.USER +  RESTNouns.ID + RESTNouns.AUTO)
+    public @ResponseBody Iterable<Auto> getAllAutosByUser(@PathVariable("id") Long userId) {
+        Iterable<Auto> autos = null;
+        if (userRepository.existsById(userId)) {
+            Optional<User> user = userRepository.findById(userId);
+            if(user.isPresent()){
+                autos = autoRepository.getAllByUserId(userId);
+            }
+        }
+        return autos;
+    }
+
+    /**
+     * Creates a new auto object for a specific user.
+     *
+     * @param userId The unique identifier of the user for whom the auto is being created
+     * @param dateBuilt The date when the auto was built
+     * @param value The monetary value of the auto
+     * @return The newly created Auto entity, or null if the user does not exist
+     */
+    @PostMapping(path = RESTNouns.USER + RESTNouns.ID + RESTNouns.AUTO)
+    public @ResponseBody Auto createAutoByUser(
+            @PathVariable("id") Long userId, @RequestParam LocalDate dateBuilt, @RequestParam int value) {
+        Auto auto = null;
+        if (userRepository.existsById(userId)) {
+            Optional<User> user = userRepository.findById(userId);
+            if (user.isPresent()) {
+                auto = new Auto();
+                auto.setValue(value);
+                auto.setDateBuilt(dateBuilt);
+                auto.setUser(user.get());
+                autoRepository.save(auto);
+            }
+        }
+
+        //TODO handle error codes
+
+        return auto;
+    }
+
+    /**
+     * Updates an existing auto object associated with a specific user.
+     *
+     * @param userId The unique identifier of the user who owns the auto
+     * @param autoId The unique identifier of the auto to be updated
+     * @param dateBuilt The new date when the auto was built
+     * @param value The new monetary value of the auto
+     * @return A string message indicating the result of the update operation
+     */
+    @PutMapping(path = RESTNouns.USER + RESTNouns.USER_ID + RESTNouns.AUTO + RESTNouns.AUTO_ID)
+    public @ResponseBody String updateAutoByUser(
+            @PathVariable("user_id") Long userId, @PathVariable("auto_id") Long autoId, @RequestParam LocalDate dateBuilt, @RequestParam int value){
+        if (userRepository.existsById(userId) && autoRepository.existsById(autoId)) {
+            Optional<User> user = userRepository.findById(userId);
+            Optional<Auto> auto = autoRepository.findById(autoId);
+            if(user.isPresent() && auto.isPresent()){
+                auto.get().setDateBuilt(dateBuilt);
+                auto.get().setValue(value);
+
+                autoRepository.save(auto.get());
+                userRepository.save(user.get());
+            }
+            return "Auto with ID " + autoId + " updated successfully.";
+        } else {
+            return "Auto with ID " + autoId + " not found.";
+        }
+    }
+
+    /**
+     * Deletes a specific auto object associated with a user.
+     *
+     * @param userId The unique identifier of the user who owns the auto
+     * @param autoId The unique identifier of the auto to be deleted
+     * @return A string message indicating the result of the deletion operation
+     */
+    @DeleteMapping(path = RESTNouns.USER + RESTNouns.USER_ID + RESTNouns.AUTO + RESTNouns.AUTO_ID)
+    public @ResponseBody String deleteAutoByUser(
+            @PathVariable("user_id") Long userId, @PathVariable("auto_id") Long autoId) {
+        if (userRepository.existsById(userId) && autoRepository.existsById(autoId)) {
+            autoRepository.deleteById(autoId);
+            return "Auto with ID " + autoId + " deleted successfully.";
+        } else {
+            return "Auto with ID " + autoId + " not found.";
         }
     }
 }

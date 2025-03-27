@@ -29,8 +29,6 @@ public class Home {
     @JoinColumn(name="user_id")
     private User user;      //User can have many homes - this will maintain the relationship
 
-    //TODO Document Getters and Setters
-
     public Integer getId() {
         return id;
     }
