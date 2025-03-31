@@ -16,7 +16,7 @@ import java.util.Optional;
 
 /**
  * The main controller for this application, handling RESTful endpoints
- * for User and Home resources. Controllers are organized by base URL
+ * for User, Home and Auto resources. Controllers are organized by base URL
  * and provide CRUD (Create, Read, Update, Delete) operations.
  */
 @Controller
@@ -28,12 +28,9 @@ public class MainController {
     @Autowired private HomeRepository homeRepository;
     @Autowired private AutoRepository autoRepository;
 
-    /**
-     *
+    /* *
      *  USER METHODS
-     *
      * */
-
 
     /**
      * Retrieves all users from the database.
@@ -112,11 +109,8 @@ public class MainController {
         }
     }
 
-    /**
-     *
-     *
+    /* *
      *  HOME METHODS
-     *
      *
      * */
 
@@ -152,7 +146,7 @@ public class MainController {
     @PostMapping(path = RESTNouns.USER + RESTNouns.ID + RESTNouns.HOME)
     public @ResponseBody Home createHomeByUser(
             @PathVariable("id") Long userId,
-            @RequestParam LocalDate dateBuilt, @RequestParam int value) {
+            @RequestParam LocalDate dateBuilt, @RequestParam int value, @RequestParam Home.HeatingType heatingType, @RequestParam Home.Location location) {
         Home home = null;
         if (userRepository.existsById(userId)) {
             Optional<User> user = userRepository.findById(userId);
@@ -161,11 +155,11 @@ public class MainController {
                 home.setValue(value);
                 home.setDateBuilt(dateBuilt);
                 home.setUser(user.get());
+                home.setHeatingType(heatingType);
+                home.setLocation(location);
                 homeRepository.save(home);
             }
         }
-
-        //TODO handle error codes
 
         return home;
     }
@@ -181,13 +175,16 @@ public class MainController {
      */
     @PutMapping(path = RESTNouns.USER + RESTNouns.USER_ID + RESTNouns.HOME + RESTNouns.HOME_ID)
     public @ResponseBody String updateHomeByUser(
-            @PathVariable("user_id") Long userId, @PathVariable("home_id") Long homeId, @RequestParam LocalDate dateBuilt, @RequestParam int value){
+            @PathVariable("user_id") Long userId, @PathVariable("home_id") Long homeId,
+            @RequestParam LocalDate dateBuilt, @RequestParam int value, @RequestParam Home.HeatingType heatingType, @RequestParam Home.Location location){
         if (userRepository.existsById(userId) && homeRepository.existsById(homeId)) {
             Optional<User> user = userRepository.findById(userId);
             Optional<Home> home = homeRepository.findById(homeId);
             if(user.isPresent() && home.isPresent()){
                 home.get().setDateBuilt(dateBuilt);
                 home.get().setValue(value);
+                home.get().setHeatingType(heatingType);
+                home.get().setLocation(location);
 
                 homeRepository.save(home.get());
                 userRepository.save(user.get());
@@ -216,11 +213,8 @@ public class MainController {
         }
     }
 
-    /**
-     *
-     *
+    /* *
      *  AUTO METHODS
-     *
      * */
 
     /**
@@ -252,7 +246,8 @@ public class MainController {
      */
     @PostMapping(path = RESTNouns.USER + RESTNouns.ID + RESTNouns.AUTO)
     public @ResponseBody Auto createAutoByUser(
-            @PathVariable("id") Long userId, @RequestParam LocalDate dateBuilt, @RequestParam int value) {
+            @PathVariable("id") Long userId,
+            @RequestParam LocalDate dateBuilt, @RequestParam int value) {
         Auto auto = null;
         if (userRepository.existsById(userId)) {
             Optional<User> user = userRepository.findById(userId);
@@ -264,8 +259,6 @@ public class MainController {
                 autoRepository.save(auto);
             }
         }
-
-        //TODO handle error codes
 
         return auto;
     }
